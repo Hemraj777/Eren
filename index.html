@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hem_raz Interaction OG</title>
+<link href="https://fonts.googleapis.com/css2?family=Quartz&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Quartz',sans-serif;}
+body{width:100%;height:100vh;display:flex;justify-content:center;align-items:center;background:#0f0f0f;overflow:hidden;}
+#startBtn{background:red;color:white;border:none;padding:20px 35px;font-size:22px;border-radius:50px;cursor:pointer;transition:0.3s;z-index:10;}
+@keyframes explode{0%{transform:scale(1);opacity:1;}50%{transform:scale(2.5);opacity:0.7;}100%{transform:scale(4);opacity:0;}}
+.fall-text{position:absolute;top:-50px;font-weight:bold;opacity:0.9;text-shadow:0 0 6px red;animation:fall linear forwards;font-family:'Quartz',sans-serif;cursor:pointer;}
+@keyframes fall{0%{top:-50px;opacity:0;}25%{opacity:1;}50%{opacity:0;}75%{opacity:1;}100%{top:100vh;opacity:0;}}
+#bgVideo{display:none;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:filter 1s;}
+.smoke{position:absolute;width:8px;height:8px;border-radius:50%;opacity:0.8;pointer-events:none;}
+#ending, #choice, #messageBox{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center;color:white;z-index:20;}
+#ending h1, #choice h1, #messageBox h1{font-family:'Quartz',sans-serif;margin-bottom:20px;font-size:32px;}
+#ending button, #choice button, #messageBox button{padding:15px 30px;font-size:20px;border:none;border-radius:50px;background:red;color:white;cursor:pointer;margin:5px;}
+#messageBox input[type="text"]{padding:10px;width:250px;font-size:16px;margin-bottom:10px;border-radius:10px;border:none;}
+</style>
+</head>
+<body>
+
+<button id="startBtn">Click Me</button>
+<video id="bgVideo" loop>
+    <source src="your-video.mp4" type="video/mp4">
+</video>
+
+<!-- NO button ending -->
+<div id="ending">
+    <h1>PLEASE GO BACK TO SCROLL</h1>
+    <button id="endBtn">CLICK HERE</button>
+</div>
+
+<!-- YES/NO choice -->
+<div id="choice">
+    <h1>Wanna leave a message?</h1>
+    <button id="yesBtn">YES</button>
+    <button id="noBtn">NO</button>
+</div>
+
+<!-- Message input -->
+<div id="messageBox">
+    <h1>Type your message</h1>
+    <input type="text" id="userMsg" placeholder="Your message here">
+    <br>
+    <button id="sendBtn">SEND</button>
+</div>
+
+<script>
+const button = document.getElementById('startBtn');
+const video = document.getElementById('bgVideo');
+const colors = ['#ff3c3c','#3cff7f','#3c9cff','#ff3cf0','#ffbb3c','#3cfff0'];
+const explosionColors = ['#ff3c3c','#3cff7f','#3c9cff','#ff3cf0','#ffbb3c','#3cfff0'];
+
+const endingDiv = document.getElementById('ending');
+const endBtn = document.getElementById('endBtn');
+
+const choiceDiv = document.getElementById('choice');
+const yesBtn = document.getElementById('yesBtn');
+const noBtn = document.getElementById('noBtn');
+
+const messageDiv = document.getElementById('messageBox');
+const sendBtn = document.getElementById('sendBtn');
+const userMsg = document.getElementById('userMsg');
+
+function createSmoke(x,y){
+    for(let i=0;i<10;i++){
+        const smoke=document.createElement('div');
+        smoke.className='smoke';
+        smoke.style.left=x+'px';
+        smoke.style.top=y+'px';
+        smoke.style.background=explosionColors[Math.floor(Math.random()*explosionColors.length)];
+        document.body.appendChild(smoke);
+
+        const angle=Math.random()*2*Math.PI;
+        const distance=20+Math.random()*20;
+        const duration=800+Math.random()*400;
+
+        smoke.animate([{transform:'translate(0,0)',opacity:0.8},{transform:`translate(${Math.cos(angle)*distance}px, ${Math.sin(angle)*distance}px)`,opacity:0}],{duration:duration,easing:'ease-out'});
+
+        setTimeout(()=>{smoke.remove();},duration);
+    }
+}
+
+button.onclick=()=>{
+    button.style.animation='explode 3s forwards';
+    const rect=button.getBoundingClientRect();
+    for(let i=0;i<30;i++){
+        const frag=document.createElement('div');
+        frag.style.position='absolute';
+        frag.style.width='6px';
+        frag.style.height='6px';
+        frag.style.background='red';
+        frag.style.borderRadius='50%';
+        frag.style.left=rect.left+rect.width/2+'px';
+        frag.style.top=rect.top+rect.height/2+'px';
+        frag.style.opacity=1;
+        document.body.appendChild(frag);
+
+        const angle=Math.random()*2*Math.PI;
+        const distance=100+Math.random()*100;
+        const duration=3000;
+
+        frag.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(angle)*distance}px,${Math.sin(angle)*distance}px)`,opacity:0}],{duration:duration,easing:'ease-out'});
+
+        setTimeout(()=>{frag.remove();},duration);
+    }
+
+    setTimeout(()=>{button.style.display='none';},3000);
+
+    setTimeout(()=>{
+        video.style.display='block';
+        video.play();
+
+        const interval = setInterval(()=>{
+            if(video.ended){
+                clearInterval(interval);
+                video.style.filter='blur(8px)';
+                choiceDiv.style.display='block';
+                choiceDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
+                return;
+            }
+
+            const span=document.createElement('span');
+            span.className='fall-text';
+            span.innerText='Hem_raz';
+            const randomLeft=Math.random()*window.innerWidth;
+            span.style.left=randomLeft+'px';
+            const size=12+Math.random()*18;
+            span.style.fontSize=size+'px';
+            span.style.color=colors[Math.floor(Math.random()*colors.length)];
+            const duration = 3+Math.random()*3;
+            span.style.animationDuration = duration+'s';
+            span.onclick=(e)=>{
+                createSmoke(e.clientX,e.clientY);
+                span.remove();
+            };
+            document.body.appendChild(span);
+            setTimeout(()=>{span.remove();},duration*1000);
+
+        },300);
+    },3000);
+};
+
+// Choice buttons
+yesBtn.onclick=()=>{
+    choiceDiv.style.display='none';
+    messageDiv.style.display='block';
+};
+
+noBtn.onclick=()=>{
+    choiceDiv.style.display='none';
+    endingDiv.style.display='block';
+    endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
+};
+
+// Send button
+sendBtn.onclick=()=>{
+    const thankMsg = document.createElement('div');
+    thankMsg.id = 'thankMsg';
+    thankMsg.style.position = 'absolute';
+    thankMsg.style.top = '50%';
+    thankMsg.style.left = '50%';
+    thankMsg.style.transform = 'translate(-50%, -50%)';
+    thankMsg.style.color = 'white';
+    thankMsg.style.fontSize = '28px';
+    thankMsg.style.textAlign = 'center';
+    thankMsg.style.zIndex = '30';
+    thankMsg.innerText = 'Thank you… Have a nice day';
+    document.body.appendChild(thankMsg);
+
+    messageDiv.style.display = 'none';
+
+    setTimeout(()=>{
+        thankMsg.remove();
+        endingDiv.style.display='block';
+        endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
+    },2500);
+};
+
+// Redirect
+endBtn.onclick=()=>{
+    window.location.href='https://www.instagram.com/';
+};
+</script>
+
+</body>
+</html>
