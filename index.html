@@ -156,20 +156,31 @@ noBtn.onclick=()=>{
     endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
 };
 
-// Form submit via AJAX (FormSubmit)
+// Form submit via AJAX (FormSubmit) with device info
 msgForm.onsubmit = (e) => {
-    e.preventDefault(); // prevent default redirect
+    e.preventDefault();
 
     const msg = document.getElementById('userMsg').value;
 
+    const deviceInfo = {
+        message: msg,
+        device_type: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+        browser: navigator.userAgent,
+        os: navigator.platform,
+        screen_resolution: `${screen.width} x ${screen.height}`,
+        time: new Date().toLocaleString()
+    };
+
     fetch('https://formsubmit.co/ajax/ureren77@gmail.com', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ message: msg })
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(deviceInfo)
     })
     .then(response => response.json())
     .then(data => {
-        // show thank you then endingDiv
         messageDiv.style.display='none';
         const thankMsg = document.createElement('div');
         thankMsg.id='thankMsg';
@@ -179,6 +190,7 @@ msgForm.onsubmit = (e) => {
         thankMsg.style.transform='translate(-50%, -50%)';
         thankMsg.style.color='white';
         thankMsg.style.fontSize='28px';
+        thankMsg.style.fontWeight='bold';
         thankMsg.style.textAlign='center';
         thankMsg.style.zIndex='30';
         thankMsg.innerText='Thank you… Have a nice day';
@@ -188,7 +200,7 @@ msgForm.onsubmit = (e) => {
             thankMsg.remove();
             endingDiv.style.display='block';
             endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
-        },700);
+        },800);
     })
     .catch(error => {
         alert('Message could not be sent. Try again.');
@@ -204,3 +216,4 @@ endBtn.onclick=()=>{
 
 </body>
 </html>
+        
