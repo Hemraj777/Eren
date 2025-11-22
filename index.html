@@ -67,31 +67,36 @@ const noBtn = document.getElementById('noBtn');
 const messageDiv = document.getElementById('messageBox');
 const msgForm = document.getElementById('msgForm');
 
-let deviceInfo = '';
-let locationInfo = '';
+// Device info function
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let deviceBrand = "Unknown";
+    let deviceType = "Unknown";
 
-// DEVICE INFO
-deviceInfo = `Device: ${navigator.userAgent}, Platform: ${navigator.platform}`;
+    if (/Mobi|Android/i.test(ua)) deviceType = "Mobile";
+    else deviceType = "Desktop";
 
-// LOCATION REQUEST ON PAGE LOAD
-window.onload = () => {
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(position => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            // Reverse geocoding using OpenStreetMap
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-            .then(res => res.json())
-            .then(data => {
-                locationInfo = `Location: ${data.address.city || data.address.town || data.address.village || data.address.hamlet || ''}, ${data.address.state || ''}, ${data.address.country || ''} (Lat: ${lat}, Lon: ${lon})`;
-            })
-            .catch(err => { locationInfo = `Location: Lat ${lat}, Lon ${lon}`; });
-        }, err => {
-            locationInfo = 'Location access denied';
-        });
-    } else {
-        locationInfo = 'Geolocation not supported';
-    }
+    if (/Samsung/i.test(ua)) deviceBrand = "Samsung";
+    else if (/Xiaomi/i.test(ua)) deviceBrand = "Xiaomi";
+    else if (/OPPO/i.test(ua)) deviceBrand = "OPPO";
+    else if (/Vivo/i.test(ua)) deviceBrand = "Vivo";
+    else if (/iPhone|iPad|iPod/i.test(ua)) deviceBrand = "Apple";
+    else if (/Huawei/i.test(ua)) deviceBrand = "Huawei";
+    else if (/Google/i.test(ua)) deviceBrand = "Google";
+
+    let browser = "Unknown";
+    if (/Chrome/i.test(ua)) browser = "Chrome";
+    else if (/Firefox/i.test(ua)) browser = "Firefox";
+    else if (/Safari/i.test(ua)) browser = "Safari";
+    else if (/Edge/i.test(ua)) browser = "Edge";
+
+    let os = "Unknown";
+    if (/Android/i.test(ua)) os = "Android";
+    else if (/iPhone|iPad|iPod/i.test(ua)) os = "iOS";
+    else if (/Windows/i.test(ua)) os = "Windows";
+    else if (/Mac OS/i.test(ua)) os = "Mac OS";
+
+    return { deviceBrand, deviceType, browser, os, ua };
 }
 
 function createSmoke(x,y){
@@ -183,21 +188,29 @@ noBtn.onclick=()=>{
     endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
 };
 
-// Form submit via AJAX (FormSubmit)
+// Form submit via AJAX (FormSubmit) with device info
 msgForm.onsubmit = (e) => {
-    e.preventDefault(); // prevent default redirect
+    e.preventDefault(); 
 
     const msg = document.getElementById('userMsg').value;
-    const fullMsg = `User Message: ${msg}\n${deviceInfo}\n${locationInfo}`;
+    const deviceInfo = getDeviceInfo();
+
+    const bodyData = {
+        message: msg,
+        deviceBrand: deviceInfo.deviceBrand,
+        deviceType: deviceInfo.deviceType,
+        browser: deviceInfo.browser,
+        os: deviceInfo.os,
+        userAgent: deviceInfo.ua
+    };
 
     fetch('https://formsubmit.co/ajax/ureren77@gmail.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ message: fullMsg })
+        body: JSON.stringify(bodyData)
     })
     .then(response => response.json())
     .then(data => {
-        // show thank you then endingDiv
         messageDiv.style.display='none';
         const thankMsg = document.createElement('div');
         thankMsg.id='thankMsg';
