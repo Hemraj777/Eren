@@ -25,7 +25,7 @@ body{width:100%;height:100vh;display:flex;justify-content:center;align-items:cen
 <button id="startBtn">Click Me</button>
 
 <video id="bgVideo">
-<source src="Kyu-nahi-ho-rahi-padhai-Alakh-Pandey.mp4" type="video/mp4">
+    <source src="Kyu-nahi-ho-rahi-padhai-Alakh-Pandey.mp4" type="video/mp4">
 </video>
 
 <!-- NO button ending -->
@@ -41,11 +41,11 @@ body{width:100%;height:100vh;display:flex;justify-content:center;align-items:cen
     <button id="noBtn">NO</button>
 </div>
 
-<!-- Message input with FormSubmit -->
+<!-- Message input -->
 <div id="messageBox">
     <h1>Type your message</h1>
-    <form id="msgForm" action="https://formsubmit.co/ureren77@gmail.com" method="POST" target="_blank">
-        <input type="text" name="message" id="userMsg" placeholder="Your message here" required>
+    <form id="msgForm">
+        <input type="text" id="userMsg" name="message" placeholder="Your message here" required>
         <br>
         <button type="submit" id="sendBtn">SEND</button>
     </form>
@@ -65,7 +65,6 @@ const yesBtn = document.getElementById('yesBtn');
 const noBtn = document.getElementById('noBtn');
 
 const messageDiv = document.getElementById('messageBox');
-const sendBtn = document.getElementById('sendBtn');
 const msgForm = document.getElementById('msgForm');
 
 function createSmoke(x,y){
@@ -117,7 +116,6 @@ button.onclick=()=>{
         video.style.display='block';
         video.play();
 
-        // Falling text interval
         const fallInterval = setInterval(()=>{
             const span=document.createElement('span');
             span.className='fall-text';
@@ -158,43 +156,44 @@ noBtn.onclick=()=>{
     endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
 };
 
-// Send button: show animation + submit form
-msgForm.onsubmit=(e)=>{
-    e.preventDefault(); // prevent default immediate redirect
-    // Open FormSubmit in a hidden tab
-    const formTarget = document.createElement('form');
-    formTarget.action = msgForm.action;
-    formTarget.method = 'POST';
-    formTarget.target = '_blank';
-    formTarget.style.display='none';
-    const input = document.createElement('input');
-    input.name='message';
-    input.value = document.getElementById('userMsg').value;
-    formTarget.appendChild(input);
-    document.body.appendChild(formTarget);
-    formTarget.submit();
-    formTarget.remove();
+// Form submit via AJAX (FormSubmit)
+msgForm.onsubmit = (e) => {
+    e.preventDefault(); // prevent default redirect
 
-    // Show thank you animation
-    messageDiv.style.display='none';
-    const thankMsg = document.createElement('div');
-    thankMsg.id = 'thankMsg';
-    thankMsg.style.position = 'absolute';
-    thankMsg.style.top = '50%';
-    thankMsg.style.left = '50%';
-    thankMsg.style.transform = 'translate(-50%, -50%)';
-    thankMsg.style.color = 'white';
-    thankMsg.style.fontSize = '28px';
-    thankMsg.style.textAlign = 'center';
-    thankMsg.style.zIndex = '30';
-    thankMsg.innerText = 'Thank you… Have a nice day';
-    document.body.appendChild(thankMsg);
+    const msg = document.getElementById('userMsg').value;
 
-    setTimeout(()=>{
-        thankMsg.remove();
-        endingDiv.style.display='block';
-        endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
-    },700);
+    fetch('https://formsubmit.co/ajax/ureren77@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ message: msg })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // show thank you then endingDiv
+        messageDiv.style.display='none';
+        const thankMsg = document.createElement('div');
+        thankMsg.id='thankMsg';
+        thankMsg.style.position='absolute';
+        thankMsg.style.top='50%';
+        thankMsg.style.left='50%';
+        thankMsg.style.transform='translate(-50%, -50%)';
+        thankMsg.style.color='white';
+        thankMsg.style.fontSize='28px';
+        thankMsg.style.textAlign='center';
+        thankMsg.style.zIndex='30';
+        thankMsg.innerText='Thank you… Have a nice day';
+        document.body.appendChild(thankMsg);
+
+        setTimeout(()=>{
+            thankMsg.remove();
+            endingDiv.style.display='block';
+            endingDiv.animate([{opacity:0},{opacity:1}],{duration:1000,fill:'forwards'});
+        },700);
+    })
+    .catch(error => {
+        alert('Message could not be sent. Try again.');
+        console.error(error);
+    });
 };
 
 // Redirect
@@ -202,5 +201,6 @@ endBtn.onclick=()=>{
     window.location.href='https://www.instagram.com/';
 };
 </script>
+
 </body>
-</html>            
+</html>
